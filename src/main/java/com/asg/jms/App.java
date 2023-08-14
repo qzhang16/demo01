@@ -1,8 +1,13 @@
 package com.asg.jms;
 
+import java.util.concurrent.CountDownLatch;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
@@ -40,6 +45,7 @@ public class App {
 		// proceducer.send(msg);
 
 		// proceducer.close();
+		final CountDownLatch latch = new CountDownLatch(1);
 		new Thread(new Runnable() {
 
 			@Override
@@ -47,19 +53,20 @@ public class App {
 				try {
 					Connection connection = cf.createConnection("admin", "admin");
 					Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-				MessageConsumer consumer = session.createConsumer(destination);
-				connection.start();
+					MessageConsumer consumer = session.createConsumer(destination);
+					consumer.setMessageListener(new Subscriber(latch));
+					connection.start();
 
-				while (true) {
-					TextMessage msg01 = (TextMessage) consumer.receive(50000);
-					if (msg01 != null) {
-						if (msg01.getText().equalsIgnoreCase("END"))
-							break;
-						System.out.println(msg01.getText());
-					}
-				}
-
-				consumer.close();
+					// while (true) {
+					// 	TextMessage msg01 = (TextMessage) consumer.receive(50000);
+					// 	if (msg01 != null) {
+					// 		if (msg01.getText().equalsIgnoreCase("END"))
+					// 			break;
+					// 		System.out.println(msg01.getText());
+					// 	}
+					// }
+					latch.await();
+					consumer.close();
 
 				} catch (Exception e) {
 					throw new RuntimeException();
@@ -74,6 +81,30 @@ public class App {
 		proceducer.close();
 
 		session.close();
-	connection.close();
+		connection.close();
 
-}}
+	}
+}
+
+class Subscriber implements MessageListener {
+	private final CountDownLatch countDownLatch;
+	public Subscriber(CountDownLatch latch) {
+        countDownLatch = latch;
+    }
+	@Override
+	public void onMessage(Message message) {
+		try {
+			if (message instanceof TextMessage) {
+				String text = ((TextMessage) message).getText();
+				if ("END".equalsIgnoreCase(text)) {
+					System.out.println("Received END message!");
+					countDownLatch.countDown();
+				} else {
+					System.out.println("Received message:" + text);
+				}
+			}
+		} catch (JMSException e) {
+			System.out.println("Got a JMS Exception!");
+		}
+	}
+}
