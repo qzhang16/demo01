@@ -1,11 +1,14 @@
 package com.asg.jms;
 
+import javax.jms.JMSConsumer;
+
 // import java.util.Enumeration;
 // import java.util.concurrent.CountDownLatch;
 
 // import javax.jms.Connection;
 // import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
+import javax.jms.JMSProducer;
 // import javax.jms.JMSException;
 // import javax.jms.Message;
 // import javax.jms.MessageListener;
@@ -32,10 +35,25 @@ public class App {
 
 		try( ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616","admin","admin");
 		JMSContext jmsContext = cf.createContext()){
-		jmsContext.createProducer().send(queue,"Arise1 Awake and stop not till the goal is reached");
-		String messageReceived =
-		jmsContext.createConsumer(queue).receiveBody(String.class);
-		System.out.println(messageReceived);
+			JMSProducer producer = jmsContext.createProducer();
+			producer.setPriority(1);
+			producer.send(queue, "message 11");
+		producer.setPriority(2);
+		producer.send(queue, "message 12");
+		producer.setPriority(3);
+		producer.send(queue, "message 13");
+
+		JMSConsumer consumer = jmsContext.createConsumer(queue);
+
+		for (int i = 0; i < 3; i++) {
+			System.out.println(consumer.receiveBody(String.class));
+		}
+
+	
+		
+		// String messageReceived =
+		// jmsContext.createConsumer(queue).receiveBody(String.class);
+		// System.out.println(messageReceived);
 		}
 		// final ConnectionFactory cf = (ConnectionFactory) context.lookup("ConnectionFactory");
 		// Connection connection = cf.createConnection("admin", "admin");
