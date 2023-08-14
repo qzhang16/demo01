@@ -1,15 +1,16 @@
 package com.asg.jms;
 
+import java.util.Enumeration;
 import java.util.concurrent.CountDownLatch;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
+import javax.jms.QueueBrowser;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 // import javax.jms.Topic;
@@ -43,43 +44,54 @@ public class App {
 		MessageProducer proceducer = session.createProducer(destination);
 		TextMessage msg = session.createTextMessage("I am the creator of my destination");
 		proceducer.send(msg);
+		proceducer.send(msg);
 
 		proceducer.close();
 
-		final CountDownLatch latch = new CountDownLatch(1);
-		new Thread(new Runnable() {
+		// final CountDownLatch latch = new CountDownLatch(1);
+		// new Thread(new Runnable() {
 
-			@Override
-			public void run() throws RuntimeException {
-				try {
-					Connection connection = cf.createConnection("admin", "admin");
-					Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-					MessageConsumer consumer = session.createConsumer(destination);
-					consumer.setMessageListener(new Subscriber(latch));
-					connection.start();
+		// 	@Override
+		// 	public void run() throws RuntimeException {
+		// 		try {
+		// 			Connection connection = cf.createConnection("admin", "admin");
+		// 			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		// 			MessageConsumer consumer = session.createConsumer(destination);
+		// 			consumer.setMessageListener(new Subscriber(latch));
+		// 			connection.start();
 
-					// while (true) {
-					// 	TextMessage msg01 = (TextMessage) consumer.receive(50000);
-					// 	if (msg01 != null) {
-					// 		if (msg01.getText().equalsIgnoreCase("END"))
-					// 			break;
-					// 		System.out.println(msg01.getText());
-					// 	}
-					// }
-					latch.await();
-					consumer.close();
+		// 			// while (true) {
+		// 			// 	TextMessage msg01 = (TextMessage) consumer.receive(50000);
+		// 			// 	if (msg01 != null) {
+		// 			// 		if (msg01.getText().equalsIgnoreCase("END"))
+		// 			// 			break;
+		// 			// 		System.out.println(msg01.getText());
+		// 			// 	}
+		// 			// }
+		// 			latch.await();
+		// 			consumer.close();
 
-				} catch (Exception e) {
-					throw new RuntimeException();
-				}
-			}
-		}).start();
+		// 		} catch (Exception e) {
+		// 			throw new RuntimeException();
+		// 		}
+		// 	}
+		// }).start();
 
 		// MessageProducer proceducer = session.createProducer(destination);
 		// TextMessage msg = session.createTextMessage("I am the creator of my		destination");
 		// proceducer.send(msg);
 
 		// proceducer.close();
+
+		QueueBrowser qb = session.createBrowser(destination);
+		Enumeration enn = qb.getEnumeration();
+		TextMessage tm = null;
+		// connection.start();
+		// connection.stop();
+		while (enn.hasMoreElements()) {
+			tm = (TextMessage) enn.nextElement();
+			System.out.println(tm.getText());
+		}
 
 		session.close();
 		connection.close();
