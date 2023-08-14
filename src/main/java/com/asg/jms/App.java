@@ -9,9 +9,10 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
+import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import javax.jms.Topic;
+// import javax.jms.Topic;
 import javax.naming.InitialContext;
 
 /**
@@ -36,15 +37,15 @@ public class App {
 		final ConnectionFactory cf = (ConnectionFactory) context.lookup("ConnectionFactory");
 		Connection connection = cf.createConnection("admin", "admin");
 		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		// Queue destination = (Queue) context.lookup("queue/queue01");
-		final Topic destination = (Topic) context.lookup("topic/topic01");
+		final Queue destination = (Queue) context.lookup("queue/queue01");
+		// final Topic destination = (Topic) context.lookup("topic/topic01");
 
-		// MessageProducer proceducer = session.createProducer(destination);
-		// TextMessage msg = session.createTextMessage("I am the creator of my
-		// destination");
-		// proceducer.send(msg);
+		MessageProducer proceducer = session.createProducer(destination);
+		TextMessage msg = session.createTextMessage("I am the creator of my destination");
+		proceducer.send(msg);
 
-		// proceducer.close();
+		proceducer.close();
+
 		final CountDownLatch latch = new CountDownLatch(1);
 		new Thread(new Runnable() {
 
@@ -74,11 +75,11 @@ public class App {
 			}
 		}).start();
 
-		MessageProducer proceducer = session.createProducer(destination);
-		TextMessage msg = session.createTextMessage("I am the creator of my		destination");
-		proceducer.send(msg);
+		// MessageProducer proceducer = session.createProducer(destination);
+		// TextMessage msg = session.createTextMessage("I am the creator of my		destination");
+		// proceducer.send(msg);
 
-		proceducer.close();
+		// proceducer.close();
 
 		session.close();
 		connection.close();
