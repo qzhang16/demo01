@@ -3,6 +3,7 @@ package com.asg.jms;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
@@ -27,32 +28,52 @@ public class App {
 		// jmsContext.createConsumer(queue).receiveBody(String.class);
 		// System.out.println(messageReceived);
 		// }
-		ConnectionFactory cf = (ConnectionFactory) context.lookup("ConnectionFactory");
+		final ConnectionFactory cf = (ConnectionFactory) context.lookup("ConnectionFactory");
 		Connection connection = cf.createConnection("admin", "admin");
 		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		// Queue destination = (Queue) context.lookup("queue/queue01");
-		Topic destination = (Topic) context.lookup("topic/topic01");
+		final Topic destination = (Topic) context.lookup("topic/topic01");
 
 		// MessageProducer proceducer = session.createProducer(destination);
-		// TextMessage msg = session.createTextMessage("I am the creator of my	destination");
+		// TextMessage msg = session.createTextMessage("I am the creator of my
+		// destination");
 		// proceducer.send(msg);
 
 		// proceducer.close();
-		MessageConsumer consumer = session.createConsumer(destination);
-		connection.start();
+		new Thread(new Runnable() {
 
-		while (true) {
-			TextMessage msg01 = (TextMessage) consumer.receive(50000);
-			if (msg01 != null) {
-				if (msg01.getText().equalsIgnoreCase("END"))
-					break;
-				System.out.println(msg01.getText());
+			@Override
+			public void run() throws RuntimeException {
+				try {
+					Connection connection = cf.createConnection("admin", "admin");
+					Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+				MessageConsumer consumer = session.createConsumer(destination);
+				connection.start();
+
+				while (true) {
+					TextMessage msg01 = (TextMessage) consumer.receive(50000);
+					if (msg01 != null) {
+						if (msg01.getText().equalsIgnoreCase("END"))
+							break;
+						System.out.println(msg01.getText());
+					}
+				}
+
+				consumer.close();
+
+				} catch (Exception e) {
+					throw new RuntimeException();
+				}
 			}
-		}
+		}).start();
 
-		consumer.close();
+		MessageProducer proceducer = session.createProducer(destination);
+		TextMessage msg = session.createTextMessage("I am the creator of my		destination");
+		proceducer.send(msg);
+
+		proceducer.close();
+
 		session.close();
-		connection.close();
+	connection.close();
 
-	}
-}
+}}
