@@ -1,20 +1,23 @@
 package com.asg.jms;
 
-import java.util.Enumeration;
-import java.util.concurrent.CountDownLatch;
+// import java.util.Enumeration;
+// import java.util.concurrent.CountDownLatch;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
+// import javax.jms.Connection;
+// import javax.jms.ConnectionFactory;
+import javax.jms.JMSContext;
+// import javax.jms.JMSException;
+// import javax.jms.Message;
+// import javax.jms.MessageListener;
+// import javax.jms.MessageProducer;
 import javax.jms.Queue;
-import javax.jms.QueueBrowser;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+// import javax.jms.QueueBrowser;
+// import javax.jms.Session;
+// import javax.jms.TextMessage;
 // import javax.jms.Topic;
 import javax.naming.InitialContext;
+
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 
 /**
  * Hello world!
@@ -25,28 +28,27 @@ public class App {
 		System.out.println("Hello World!");
 
 		InitialContext context = new InitialContext();
-		// Queue queue = (Queue) context.lookup("queue/queue01");
+		Queue queue = (Queue) context.lookup("queue/queue01");
 
-		// try(ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory();
-		// JMSContext jmsContext = cf.createContext()){
-		// jmsContext.createProducer().send(queue,"Arise Awake and stop not till the
-		// goal is reached");
-		// String messageReceived =
-		// jmsContext.createConsumer(queue).receiveBody(String.class);
-		// System.out.println(messageReceived);
-		// }
-		final ConnectionFactory cf = (ConnectionFactory) context.lookup("ConnectionFactory");
-		Connection connection = cf.createConnection("admin", "admin");
-		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		final Queue destination = (Queue) context.lookup("queue/queue01");
-		// final Topic destination = (Topic) context.lookup("topic/topic01");
+		try( ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616","admin","admin");
+		JMSContext jmsContext = cf.createContext()){
+		jmsContext.createProducer().send(queue,"Arise1 Awake and stop not till the goal is reached");
+		String messageReceived =
+		jmsContext.createConsumer(queue).receiveBody(String.class);
+		System.out.println(messageReceived);
+		}
+		// final ConnectionFactory cf = (ConnectionFactory) context.lookup("ConnectionFactory");
+		// Connection connection = cf.createConnection("admin", "admin");
+		// Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		// final Queue destination = (Queue) context.lookup("queue/queue01");
+		// // final Topic destination = (Topic) context.lookup("topic/topic01");
 
-		MessageProducer proceducer = session.createProducer(destination);
-		TextMessage msg = session.createTextMessage("I am the creator of my destination");
-		proceducer.send(msg);
-		proceducer.send(msg);
+		// MessageProducer proceducer = session.createProducer(destination);
+		// TextMessage msg = session.createTextMessage("I am the creator of my destination");
+		// proceducer.send(msg);
+		// proceducer.send(msg);
 
-		proceducer.close();
+		// proceducer.close();
 
 		// final CountDownLatch latch = new CountDownLatch(1);
 		// new Thread(new Runnable() {
@@ -83,41 +85,41 @@ public class App {
 
 		// proceducer.close();
 
-		QueueBrowser qb = session.createBrowser(destination);
-		Enumeration enn = qb.getEnumeration();
-		TextMessage tm = null;
-		// connection.start();
-		// connection.stop();
-		while (enn.hasMoreElements()) {
-			tm = (TextMessage) enn.nextElement();
-			System.out.println(tm.getText());
-		}
+		// QueueBrowser qb = session.createBrowser(destination);
+		// Enumeration enn = qb.getEnumeration();
+		// TextMessage tm = null;
+		// // connection.start();
+		// // connection.stop();
+		// while (enn.hasMoreElements()) {
+		// 	tm = (TextMessage) enn.nextElement();
+		// 	System.out.println(tm.getText());
+		// }
 
-		session.close();
-		connection.close();
+		// session.close();
+		// connection.close();
 
 	}
 }
 
-class Subscriber implements MessageListener {
-	private final CountDownLatch countDownLatch;
-	public Subscriber(CountDownLatch latch) {
-        countDownLatch = latch;
-    }
-	@Override
-	public void onMessage(Message message) {
-		try {
-			if (message instanceof TextMessage) {
-				String text = ((TextMessage) message).getText();
-				if ("END".equalsIgnoreCase(text)) {
-					System.out.println("Received END message!");
-					countDownLatch.countDown();
-				} else {
-					System.out.println("Received message:" + text);
-				}
-			}
-		} catch (JMSException e) {
-			System.out.println("Got a JMS Exception!");
-		}
-	}
-}
+// class Subscriber implements MessageListener {
+// 	private final CountDownLatch countDownLatch;
+// 	public Subscriber(CountDownLatch latch) {
+//         countDownLatch = latch;
+//     }
+// 	@Override
+// 	public void onMessage(Message message) {
+// 		try {
+// 			if (message instanceof TextMessage) {
+// 				String text = ((TextMessage) message).getText();
+// 				if ("END".equalsIgnoreCase(text)) {
+// 					System.out.println("Received END message!");
+// 					countDownLatch.countDown();
+// 				} else {
+// 					System.out.println("Received message:" + text);
+// 				}
+// 			}
+// 		} catch (JMSException e) {
+// 			System.out.println("Got a JMS Exception!");
+// 		}
+// 	}
+// }
