@@ -3,10 +3,9 @@ package com.asg.jms;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import javax.jms.Topic;
 import javax.naming.InitialContext;
 
 /**
@@ -31,17 +30,25 @@ public class App {
 		ConnectionFactory cf = (ConnectionFactory) context.lookup("ConnectionFactory");
 		Connection connection = cf.createConnection("admin", "admin");
 		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		Queue destination = (Queue) context.lookup("queue/queue01");
+		// Queue destination = (Queue) context.lookup("queue/queue01");
+		Topic destination = (Topic) context.lookup("topic/topic01");
 
-		MessageProducer proceducer = session.createProducer(destination);
-		TextMessage msg = session.createTextMessage("I am the creator of my	destination");
-		proceducer.send(msg);
+		// MessageProducer proceducer = session.createProducer(destination);
+		// TextMessage msg = session.createTextMessage("I am the creator of my	destination");
+		// proceducer.send(msg);
 
-		proceducer.close();
+		// proceducer.close();
 		MessageConsumer consumer = session.createConsumer(destination);
 		connection.start();
-		TextMessage msg01 = (TextMessage) consumer.receive(100);
-		if (msg01 != null) System.out.println(msg01.getText());
+
+		while (true) {
+			TextMessage msg01 = (TextMessage) consumer.receive(50000);
+			if (msg01 != null) {
+				if (msg01.getText().equalsIgnoreCase("END"))
+					break;
+				System.out.println(msg01.getText());
+			}
+		}
 
 		consumer.close();
 		session.close();
