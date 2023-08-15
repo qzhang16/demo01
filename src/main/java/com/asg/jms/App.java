@@ -44,6 +44,8 @@ public class App {
 			// reqProducer.setJMSReplyTo(replyQ);
 			reqProducer.setTimeToLive(1000);
 			TextMessage msg = jmsContext.createTextMessage("message X110");
+			msg.setBooleanProperty("logged", true);
+			msg.setStringProperty("userToken", "abc123..");
 			// TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
 			
 			// msg.setJMSReplyTo(replyQ);
@@ -61,8 +63,14 @@ public class App {
 		// // String msg = reqC.receiveBody(String.class);
 		if (msg01 != null) {
 			System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
+			System.out.println(msg01.getBody(String.class));
+			System.out.println(msg01.getBooleanProperty("logged"));
+			System.out.println(msg01.getStringProperty("userToken"));
 		} else {
-			System.out.println(jmsContext.createConsumer(expiryQueue).receiveBody(String.class));
+			Message msg10 = jmsContext.createConsumer(expiryQueue).receive(100);
+			System.out.println(msg10.getBody(String.class));
+			System.out.println(msg10.getBooleanProperty("logged"));
+			System.out.println(msg10.getStringProperty("userToken"));
 		}
 		// Map<String, TextMessage> messages = new HashMap<>();
 		// messages.put(msg01.getJMSMessageID(), msg);
