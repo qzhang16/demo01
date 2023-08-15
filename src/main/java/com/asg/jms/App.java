@@ -1,7 +1,5 @@
 package com.asg.jms;
 
-import javax.jms.JMSConsumer;
-
 // import java.util.Enumeration;
 // import java.util.concurrent.CountDownLatch;
 
@@ -9,12 +7,12 @@ import javax.jms.JMSConsumer;
 // import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
-import javax.jms.Message;
 // import javax.jms.JMSException;
 // import javax.jms.Message;
 // import javax.jms.MessageListener;
 // import javax.jms.MessageProducer;
 import javax.jms.Queue;
+import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
 // import javax.jms.QueueBrowser;
 // import javax.jms.Session;
@@ -34,7 +32,7 @@ public class App {
 
 		InitialContext context = new InitialContext();
 		Queue reqQ = (Queue) context.lookup("queue/requestQueue");
-		Queue replyQ = (Queue) context.lookup("queue/replyQueue");
+		// Queue replyQ = (Queue) context.lookup("queue/replyQueue");
 
 		try( ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616","admin","admin");
 		JMSContext jmsContext = cf.createContext()){
@@ -42,6 +40,7 @@ public class App {
 			// producer.setPriority(1);
 			// reqProducer.setJMSReplyTo(replyQ);
 			TextMessage msg = jmsContext.createTextMessage("message 11");
+			TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
 			msg.setJMSReplyTo(replyQ);
 			// reqProducer.send(reqQ, "message 11");
 			reqProducer.send(reqQ, msg);
@@ -50,20 +49,20 @@ public class App {
 		// producer.setPriority(3);
 		// producer.send(queue, "message 13");
 
-		JMSConsumer reqC = jmsContext.createConsumer(reqQ);
-		Message msg01 = reqC.receive(100);
-		// String msg = reqC.receiveBody(String.class);
-		System.out.println(msg01.getBody(String.class));
+		// JMSConsumer reqC = jmsContext.createConsumer(reqQ);
+		// Message msg01 = reqC.receive(100);
+		// // String msg = reqC.receiveBody(String.class);
+		// System.out.println(msg01.getBody(String.class));
 
-		JMSProducer replyProducer = jmsContext.createProducer();
-		// replyProducer.send(replyQ, "Echo: " + msg);
-		replyProducer.send(msg01.getJMSReplyTo(), "Echo: " + msg01.getBody(String.class));
+		// JMSProducer replyProducer = jmsContext.createProducer();
+		// // replyProducer.send(replyQ, "Echo: " + msg);
+		// replyProducer.send(msg01.getJMSReplyTo(), "Echo: " + msg01.getBody(String.class));
 
-		// JMSConsumer replyC = jmsContext.createConsumer(replyQ);
-		JMSConsumer replyC = jmsContext.createConsumer(msg01.getJMSReplyTo());
+		// // JMSConsumer replyC = jmsContext.createConsumer(replyQ);
+		// JMSConsumer replyC = jmsContext.createConsumer(msg01.getJMSReplyTo());
 		
-		// msg = replyC.receiveBody(String.class);
-		System.out.println(replyC.receiveBody(String.class));
+		// // msg = replyC.receiveBody(String.class);
+		// System.out.println(replyC.receiveBody(String.class));
 
 
 
