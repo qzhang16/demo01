@@ -35,6 +35,7 @@ public class App {
 		InitialContext context = new InitialContext();
 		Queue reqQ = (Queue) context.lookup("queue/requestQueue");
 		// Queue replyQ = (Queue) context.lookup("queue/replyQueue");
+		Queue expiryQueue = (Queue) context.lookup("queue/expiryQueue");
 
 		try( ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616","admin","admin");
 		JMSContext jmsContext = cf.createContext()){
@@ -58,7 +59,11 @@ public class App {
 		JMSConsumer reqC = jmsContext.createConsumer(reqQ);
 		Message msg01 = reqC.receive(100);
 		// // String msg = reqC.receiveBody(String.class);
-		System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
+		if (msg01 != null) {
+			System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
+		} else {
+			System.out.println(jmsContext.createConsumer(expiryQueue).receiveBody(String.class));
+		}
 		// Map<String, TextMessage> messages = new HashMap<>();
 		// messages.put(msg01.getJMSMessageID(), msg);
 
