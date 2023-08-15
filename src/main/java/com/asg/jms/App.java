@@ -15,6 +15,7 @@ import javax.jms.Message;
 // import javax.jms.MessageListener;
 // import javax.jms.MessageProducer;
 import javax.jms.Queue;
+import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
 // import javax.jms.QueueBrowser;
 // import javax.jms.Session;
@@ -34,7 +35,7 @@ public class App {
 
 		InitialContext context = new InitialContext();
 		Queue reqQ = (Queue) context.lookup("queue/requestQueue");
-		Queue replyQ = (Queue) context.lookup("queue/replyQueue");
+		// Queue replyQ = (Queue) context.lookup("queue/replyQueue");
 
 		try( ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616","admin","admin");
 		JMSContext jmsContext = cf.createContext()){
@@ -42,8 +43,8 @@ public class App {
 			// producer.setPriority(1);
 			// reqProducer.setJMSReplyTo(replyQ);
 			TextMessage msg = jmsContext.createTextMessage("message 11");
-			// TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
-			// msg.setJMSReplyTo(replyQ);
+			TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
+			msg.setJMSReplyTo(replyQ);
 			// reqProducer.send(reqQ, "message 11");
 			reqProducer.send(reqQ, msg);
 			// System.out.println(msg.getJMSMessageID() + " : " + msg.getBody(String.class));
@@ -63,8 +64,8 @@ public class App {
 		// // replyProducer.send(replyQ, "Echo: " + msg);
 		replyProducer.send(msg01.getJMSReplyTo(), msg02);
 
-		JMSConsumer replyC = jmsContext.createConsumer(replyQ);
-		// JMSConsumer replyC = jmsContext.createConsumer(msg01.getJMSReplyTo());
+		// JMSConsumer replyC = jmsContext.createConsumer(replyQ);
+		JMSConsumer replyC = jmsContext.createConsumer(msg01.getJMSReplyTo());
 		
 		// // msg = replyC.receiveBody(String.class);
 		// System.out.println(replyC.receiveBody(String.class));
