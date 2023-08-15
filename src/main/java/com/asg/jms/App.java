@@ -1,5 +1,8 @@
 package com.asg.jms;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.jms.JMSConsumer;
 
 // import java.util.Enumeration;
@@ -15,7 +18,6 @@ import javax.jms.Message;
 // import javax.jms.MessageListener;
 // import javax.jms.MessageProducer;
 import javax.jms.Queue;
-import javax.jms.TemporaryQueue;
 import javax.jms.TextMessage;
 // import javax.jms.QueueBrowser;
 // import javax.jms.Session;
@@ -35,7 +37,7 @@ public class App {
 
 		InitialContext context = new InitialContext();
 		Queue reqQ = (Queue) context.lookup("queue/requestQueue");
-		// Queue replyQ = (Queue) context.lookup("queue/replyQueue");
+		Queue replyQ = (Queue) context.lookup("queue/replyQueue");
 
 		try( ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616","admin","admin");
 		JMSContext jmsContext = cf.createContext()){
@@ -43,7 +45,8 @@ public class App {
 			// producer.setPriority(1);
 			// reqProducer.setJMSReplyTo(replyQ);
 			TextMessage msg = jmsContext.createTextMessage("message 11");
-			TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
+			// TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
+			
 			msg.setJMSReplyTo(replyQ);
 			// reqProducer.send(reqQ, "message 11");
 			reqProducer.send(reqQ, msg);
@@ -57,20 +60,24 @@ public class App {
 		Message msg01 = reqC.receive(100);
 		// // String msg = reqC.receiveBody(String.class);
 		System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
+		Map<String, TextMessage> messages = new HashMap<>();
+		messages.put(msg01.getJMSMessageID(), msg);
 
 		JMSProducer replyProducer = jmsContext.createProducer();
 		TextMessage msg02 = jmsContext.createTextMessage("Echo: " + msg01.getBody(String.class));
 		msg02.setJMSCorrelationID(msg01.getJMSMessageID());
-		// // replyProducer.send(replyQ, "Echo: " + msg);
-		replyProducer.send(msg01.getJMSReplyTo(), msg02);
+		// replyProducer.send(replyQ, "Echo: " + msg);
+		replyProducer.send((Queue) msg01.getJMSReplyTo(), msg02);
+		// replyProducer.send(replyQ, msg02);
 
 		// JMSConsumer replyC = jmsContext.createConsumer(replyQ);
-		JMSConsumer replyC = jmsContext.createConsumer(msg01.getJMSReplyTo());
+		JMSConsumer replyC = jmsContext.createConsumer((Queue) msg01.getJMSReplyTo());
 		
-		// // msg = replyC.receiveBody(String.class);
-		// System.out.println(replyC.receiveBody(String.class));
+		// // // msg = replyC.receiveBody(String.class);
+		// // System.out.println(replyC.receiveBody(String.class));
 		Message msg03 = replyC.receive(100);
 		System.out.println("Echo: " + msg03.getJMSCorrelationID() + " : " + msg03.getBody(String.class));
+		System.out.println("Original: " + messages.get(msg03.getJMSCorrelationID()).getBody(String.class));
 
 
 
