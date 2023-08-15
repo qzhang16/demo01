@@ -9,6 +9,7 @@ import javax.jms.JMSConsumer;
 // import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
+import javax.jms.Message;
 // import javax.jms.JMSException;
 // import javax.jms.Message;
 // import javax.jms.MessageListener;
@@ -31,23 +32,41 @@ public class App {
 		System.out.println("Hello World!");
 
 		InitialContext context = new InitialContext();
-		Queue queue = (Queue) context.lookup("queue/queue01");
+		Queue reqQ = (Queue) context.lookup("queue/requestQueue");
+		Queue replyQ = (Queue) context.lookup("queue/replyQueue");
 
 		try( ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616","admin","admin");
 		JMSContext jmsContext = cf.createContext()){
-			JMSProducer producer = jmsContext.createProducer();
-			producer.setPriority(1);
-			producer.send(queue, "message 11");
-		producer.setPriority(2);
-		producer.send(queue, "message 12");
-		producer.setPriority(3);
-		producer.send(queue, "message 13");
+			JMSProducer reqProducer = jmsContext.createProducer();
+			// producer.setPriority(1);
+			reqProducer.setJMSReplyTo(replyQ);
+			reqProducer.send(reqQ, "message 11");
+		// producer.setPriority(2);
+		// producer.send(queue, "message 12");
+		// producer.setPriority(3);
+		// producer.send(queue, "message 13");
 
-		JMSConsumer consumer = jmsContext.createConsumer(queue);
+		JMSConsumer reqC = jmsContext.createConsumer(reqQ);
+		Message msg = reqC.receive(100);
+		// String msg = reqC.receiveBody(String.class);
+		System.out.println(msg.getBody(String.class));
 
-		for (int i = 0; i < 3; i++) {
-			System.out.println(consumer.receiveBody(String.class));
-		}
+		JMSProducer replyProducer = jmsContext.createProducer();
+		// replyProducer.send(replyQ, "Echo: " + msg);
+		replyProducer.send(msg.getJMSReplyTo(), "Echo: " + msg.getBody(String.class));
+
+		// JMSConsumer replyC = jmsContext.createConsumer(replyQ);
+		JMSConsumer replyC = jmsContext.createConsumer(msg.getJMSReplyTo());
+		
+		// msg = replyC.receiveBody(String.class);
+		System.out.println(replyC.receiveBody(String.class));
+
+
+
+		// for (int i = 0; i < 3; i++) {
+		// 	// System.out.println(consumer.receiveBody(String.class));
+		// 	System.out.println(consumer.receive(100).getJMSPriority());
+		// }
 
 	
 		
