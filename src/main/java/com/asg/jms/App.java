@@ -5,7 +5,6 @@ import java.io.Serializable;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
-import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.naming.InitialContext;
 
@@ -41,11 +40,11 @@ public class App {
 			// MapMessage msg = jmsContext.createMapMessage();
 			// msg.setBoolean("open", true);
 			// msg.setDouble("temperature", 11.2);
-			ObjectMessage msg = jmsContext.createObjectMessage();
+			// ObjectMessage msg = jmsContext.createObjectMessage();
 			Patient a = new Patient();
 			a.setId(102);
 			a.setName("Joe");
-			msg.setObject(a);
+			// msg.setObject(a);
 			
 
 			// msg.setBooleanProperty("logged", true);
@@ -55,7 +54,8 @@ public class App {
 			// msg.setJMSReplyTo(replyQ);
 
 			// reqProducer.send(reqQ, "message 11");
-			reqProducer.send(reqQ, msg);
+			// reqProducer.send(reqQ, msg);
+			reqProducer.send(reqQ, a);
 			// System.out.println(msg.getJMSMessageID() + " : " + msg.getBody(String.class));
 			// producer.setPriority(2);
 			// producer.send(queue, "message 12");
@@ -66,8 +66,9 @@ public class App {
 			// BytesMessage msg01 = (BytesMessage) reqC.receive(100);
 			// StreamMessage msg01 = (StreamMessage) reqC.receive(100);
 			// MapMessage msg01 = (MapMessage) reqC.receive(100);
-			ObjectMessage msg01 = (ObjectMessage) reqC.receive(100);
-			Patient b = (Patient) msg01.getObject();
+			// ObjectMessage msg01 = (ObjectMessage) reqC.receive(100);
+			Patient b = reqC.receiveBody(Patient.class);
+			// Patient b = (Patient) msg01.getObject();
 
 			System.out.println(b.getId());
 			System.out.println(b.getName());
