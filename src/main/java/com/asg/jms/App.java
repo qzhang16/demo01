@@ -1,10 +1,10 @@
 package com.asg.jms;
 
-import javax.jms.BytesMessage;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
 import javax.jms.Queue;
+import javax.jms.StreamMessage;
 import javax.naming.InitialContext;
 
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
@@ -29,9 +29,12 @@ public class App {
 			// reqProducer.setJMSReplyTo(replyQ);
 			// reqProducer.setTimeToLive(1000);
 			// TextMessage msg = jmsContext.createTextMessage("message X110");
-			BytesMessage msg = jmsContext.createBytesMessage();
-			msg.writeLong(123L);
-			msg.writeUTF("大事件");
+			// BytesMessage msg = jmsContext.createBytesMessage();
+			// msg.writeLong(123L);
+			// msg.writeUTF("大事件");
+			StreamMessage msg = jmsContext.createStreamMessage();
+			msg.writeBoolean(true);
+			msg.writeFloat(2.5f);
 			// msg.setBooleanProperty("logged", true);
 			// msg.setStringProperty("userToken", "abc123..");
 			// TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
@@ -47,9 +50,12 @@ public class App {
 		// producer.send(queue, "message 13");
 		// Thread.sleep(2000);
 		JMSConsumer reqC = jmsContext.createConsumer(reqQ);
-		BytesMessage msg01 = (BytesMessage) reqC.receive(100);
-		System.out.println(msg01.readLong());
-		System.out.println(msg01.readUTF());
+		// BytesMessage msg01 = (BytesMessage) reqC.receive(100);
+		StreamMessage msg01 = (StreamMessage) reqC.receive(100);
+		// System.out.println(msg01.readLong());
+		// System.out.println(msg01.readUTF());
+		System.out.println(msg01.readBoolean());
+		System.out.println(msg01.readFloat());
 		// // String msg = reqC.receiveBody(String.class);
 		// if (msg01 != null) {
 		// 	System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
