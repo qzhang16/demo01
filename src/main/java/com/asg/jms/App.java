@@ -1,9 +1,11 @@
 package com.asg.jms;
 
+import java.io.Serializable;
+
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
-import javax.jms.MapMessage;
+import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.naming.InitialContext;
 
@@ -22,8 +24,8 @@ public class App {
 		// Queue replyQ = (Queue) context.lookup("queue/replyQueue");
 		// Queue expiryQueue = (Queue) context.lookup("queue/expiryQueue");
 
-		try( ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616","admin","admin");
-		JMSContext jmsContext = cf.createContext()){
+		try (ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616", "admin", "admin");
+				JMSContext jmsContext = cf.createContext()) {
 			JMSProducer reqProducer = jmsContext.createProducer();
 			// producer.setPriority(1);
 			// reqProducer.setJMSReplyTo(replyQ);
@@ -36,77 +38,82 @@ public class App {
 			// msg.writeBoolean(true);
 			// msg.writeFloat(2.5f);
 
-			MapMessage msg = jmsContext.createMapMessage();
-			msg.setBoolean("open", true);
-			msg.setDouble("temperature", 11.2);
+			// MapMessage msg = jmsContext.createMapMessage();
+			// msg.setBoolean("open", true);
+			// msg.setDouble("temperature", 11.2);
+			ObjectMessage msg = jmsContext.createObjectMessage();
+			Patient a = new Patient();
+			a.setId(102);
+			a.setName("Joe");
+			msg.setObject(a);
+			
 
 			// msg.setBooleanProperty("logged", true);
 			// msg.setStringProperty("userToken", "abc123..");
 			// TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
-			
+
 			// msg.setJMSReplyTo(replyQ);
-			
+
 			// reqProducer.send(reqQ, "message 11");
 			reqProducer.send(reqQ, msg);
 			// System.out.println(msg.getJMSMessageID() + " : " + msg.getBody(String.class));
-		// producer.setPriority(2);
-		// producer.send(queue, "message 12");
-		// producer.setPriority(3);
-		// producer.send(queue, "message 13");
-		// Thread.sleep(2000);
-		JMSConsumer reqC = jmsContext.createConsumer(reqQ);
-		// BytesMessage msg01 = (BytesMessage) reqC.receive(100);
-		// StreamMessage msg01 = (StreamMessage) reqC.receive(100);
-		MapMessage msg01 = (MapMessage) reqC.receive(100);
-		System.out.println(msg01.getBoolean("open"));
-		System.out.println(msg01.getDouble("temperature"));
-		// System.out.println(msg01.readLong());
-		// System.out.println(msg01.readUTF());
-		// System.out.println(msg01.readBoolean());
-		// System.out.println(msg01.readFloat());
-		// // String msg = reqC.receiveBody(String.class);
-		// if (msg01 != null) {
-		// 	System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
-		// 	System.out.println(msg01.getBody(String.class));
-		// 	System.out.println(msg01.getBooleanProperty("logged"));
-		// 	System.out.println(msg01.getStringProperty("userToken"));
-		// } else {
-		// 	Message msg10 = jmsContext.createConsumer(expiryQueue).receive(100);
-		// 	System.out.println(msg10.getBody(String.class));
-		// 	System.out.println(msg10.getBooleanProperty("logged"));
-		// 	System.out.println(msg10.getStringProperty("userToken"));
-		// }
-		// Map<String, TextMessage> messages = new HashMap<>();
-		// messages.put(msg01.getJMSMessageID(), msg);
+			// producer.setPriority(2);
+			// producer.send(queue, "message 12");
+			// producer.setPriority(3);
+			// producer.send(queue, "message 13");
+			// Thread.sleep(2000);
+			JMSConsumer reqC = jmsContext.createConsumer(reqQ);
+			// BytesMessage msg01 = (BytesMessage) reqC.receive(100);
+			// StreamMessage msg01 = (StreamMessage) reqC.receive(100);
+			// MapMessage msg01 = (MapMessage) reqC.receive(100);
+			ObjectMessage msg01 = (ObjectMessage) reqC.receive(100);
+			Patient b = (Patient) msg01.getObject();
 
-		// JMSProducer replyProducer = jmsContext.createProducer();
-		// TextMessage msg02 = jmsContext.createTextMessage("Echo: " + msg01.getBody(String.class));
-		// msg02.setJMSCorrelationID(msg01.getJMSMessageID());
-		// // replyProducer.send(replyQ, "Echo: " + msg);
-		// replyProducer.send((Queue) msg01.getJMSReplyTo(), msg02);
-		// // replyProducer.send(replyQ, msg02);
+			System.out.println(b.getId());
+			System.out.println(b.getName());
+			// System.out.println(msg01.readLong());
+			// System.out.println(msg01.readUTF());
+			// System.out.println(msg01.readBoolean());
+			// System.out.println(msg01.readFloat());
+			// // String msg = reqC.receiveBody(String.class);
+			// if (msg01 != null) {
+			// 	System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
+			// 	System.out.println(msg01.getBody(String.class));
+			// 	System.out.println(msg01.getBooleanProperty("logged"));
+			// 	System.out.println(msg01.getStringProperty("userToken"));
+			// } else {
+			// 	Message msg10 = jmsContext.createConsumer(expiryQueue).receive(100);
+			// 	System.out.println(msg10.getBody(String.class));
+			// 	System.out.println(msg10.getBooleanProperty("logged"));
+			// 	System.out.println(msg10.getStringProperty("userToken"));
+			// }
+			// Map<String, TextMessage> messages = new HashMap<>();
+			// messages.put(msg01.getJMSMessageID(), msg);
 
-		// // JMSConsumer replyC = jmsContext.createConsumer(replyQ);
-		// JMSConsumer replyC = jmsContext.createConsumer((Queue) msg01.getJMSReplyTo());
-		
-		// // // // msg = replyC.receiveBody(String.class);
-		// // // System.out.println(replyC.receiveBody(String.class));
-		// Message msg03 = replyC.receive(100);
-		// System.out.println("Echo: " + msg03.getJMSCorrelationID() + " : " + msg03.getBody(String.class));
-		// System.out.println("Original: " + messages.get(msg03.getJMSCorrelationID()).getBody(String.class));
+			// JMSProducer replyProducer = jmsContext.createProducer();
+			// TextMessage msg02 = jmsContext.createTextMessage("Echo: " + msg01.getBody(String.class));
+			// msg02.setJMSCorrelationID(msg01.getJMSMessageID());
+			// // replyProducer.send(replyQ, "Echo: " + msg);
+			// replyProducer.send((Queue) msg01.getJMSReplyTo(), msg02);
+			// // replyProducer.send(replyQ, msg02);
 
+			// // JMSConsumer replyC = jmsContext.createConsumer(replyQ);
+			// JMSConsumer replyC = jmsContext.createConsumer((Queue) msg01.getJMSReplyTo());
 
+			// // // // msg = replyC.receiveBody(String.class);
+			// // // System.out.println(replyC.receiveBody(String.class));
+			// Message msg03 = replyC.receive(100);
+			// System.out.println("Echo: " + msg03.getJMSCorrelationID() + " : " + msg03.getBody(String.class));
+			// System.out.println("Original: " + messages.get(msg03.getJMSCorrelationID()).getBody(String.class));
 
-		// for (int i = 0; i < 3; i++) {
-		// 	// System.out.println(consumer.receiveBody(String.class));
-		// 	System.out.println(consumer.receive(100).getJMSPriority());
-		// }
+			// for (int i = 0; i < 3; i++) {
+			// 	// System.out.println(consumer.receiveBody(String.class));
+			// 	System.out.println(consumer.receive(100).getJMSPriority());
+			// }
 
-	
-		
-		// String messageReceived =
-		// jmsContext.createConsumer(queue).receiveBody(String.class);
-		// System.out.println(messageReceived);
+			// String messageReceived =
+			// jmsContext.createConsumer(queue).receiveBody(String.class);
+			// System.out.println(messageReceived);
 		}
 		// final ConnectionFactory cf = (ConnectionFactory) context.lookup("ConnectionFactory");
 		// Connection connection = cf.createConnection("admin", "admin");
@@ -194,3 +201,21 @@ public class App {
 // 		}
 // 	}
 // }
+class Patient implements Serializable {
+	// private static final long serialVersionUID = 1L;
+	private int id;
+	private String name;
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+}
