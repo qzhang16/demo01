@@ -1,25 +1,10 @@
 package com.asg.jms;
 
+import javax.jms.BytesMessage;
 import javax.jms.JMSConsumer;
-
-// import java.util.Enumeration;
-// import java.util.concurrent.CountDownLatch;
-
-// import javax.jms.Connection;
-// import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
-import javax.jms.Message;
-// import javax.jms.JMSException;
-// import javax.jms.Message;
-// import javax.jms.MessageListener;
-// import javax.jms.MessageProducer;
 import javax.jms.Queue;
-import javax.jms.TextMessage;
-// import javax.jms.QueueBrowser;
-// import javax.jms.Session;
-// import javax.jms.TextMessage;
-// import javax.jms.Topic;
 import javax.naming.InitialContext;
 
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
@@ -35,17 +20,20 @@ public class App {
 		InitialContext context = new InitialContext();
 		Queue reqQ = (Queue) context.lookup("queue/requestQueue");
 		// Queue replyQ = (Queue) context.lookup("queue/replyQueue");
-		Queue expiryQueue = (Queue) context.lookup("queue/expiryQueue");
+		// Queue expiryQueue = (Queue) context.lookup("queue/expiryQueue");
 
 		try( ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory("tcp://localhost:61616","admin","admin");
 		JMSContext jmsContext = cf.createContext()){
 			JMSProducer reqProducer = jmsContext.createProducer();
 			// producer.setPriority(1);
 			// reqProducer.setJMSReplyTo(replyQ);
-			reqProducer.setTimeToLive(1000);
-			TextMessage msg = jmsContext.createTextMessage("message X110");
-			msg.setBooleanProperty("logged", true);
-			msg.setStringProperty("userToken", "abc123..");
+			// reqProducer.setTimeToLive(1000);
+			// TextMessage msg = jmsContext.createTextMessage("message X110");
+			BytesMessage msg = jmsContext.createBytesMessage();
+			msg.writeLong(123L);
+			msg.writeUTF("大事件");
+			// msg.setBooleanProperty("logged", true);
+			// msg.setStringProperty("userToken", "abc123..");
 			// TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
 			
 			// msg.setJMSReplyTo(replyQ);
@@ -57,21 +45,23 @@ public class App {
 		// producer.send(queue, "message 12");
 		// producer.setPriority(3);
 		// producer.send(queue, "message 13");
-		Thread.sleep(2000);
+		// Thread.sleep(2000);
 		JMSConsumer reqC = jmsContext.createConsumer(reqQ);
-		Message msg01 = reqC.receive(100);
+		BytesMessage msg01 = (BytesMessage) reqC.receive(100);
+		System.out.println(msg01.readLong());
+		System.out.println(msg01.readUTF());
 		// // String msg = reqC.receiveBody(String.class);
-		if (msg01 != null) {
-			System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
-			System.out.println(msg01.getBody(String.class));
-			System.out.println(msg01.getBooleanProperty("logged"));
-			System.out.println(msg01.getStringProperty("userToken"));
-		} else {
-			Message msg10 = jmsContext.createConsumer(expiryQueue).receive(100);
-			System.out.println(msg10.getBody(String.class));
-			System.out.println(msg10.getBooleanProperty("logged"));
-			System.out.println(msg10.getStringProperty("userToken"));
-		}
+		// if (msg01 != null) {
+		// 	System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
+		// 	System.out.println(msg01.getBody(String.class));
+		// 	System.out.println(msg01.getBooleanProperty("logged"));
+		// 	System.out.println(msg01.getStringProperty("userToken"));
+		// } else {
+		// 	Message msg10 = jmsContext.createConsumer(expiryQueue).receive(100);
+		// 	System.out.println(msg10.getBody(String.class));
+		// 	System.out.println(msg10.getBooleanProperty("logged"));
+		// 	System.out.println(msg10.getStringProperty("userToken"));
+		// }
 		// Map<String, TextMessage> messages = new HashMap<>();
 		// messages.put(msg01.getJMSMessageID(), msg);
 
