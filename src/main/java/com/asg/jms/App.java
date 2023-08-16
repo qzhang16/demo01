@@ -3,8 +3,8 @@ package com.asg.jms;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
+import javax.jms.MapMessage;
 import javax.jms.Queue;
-import javax.jms.StreamMessage;
 import javax.naming.InitialContext;
 
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
@@ -32,9 +32,14 @@ public class App {
 			// BytesMessage msg = jmsContext.createBytesMessage();
 			// msg.writeLong(123L);
 			// msg.writeUTF("大事件");
-			StreamMessage msg = jmsContext.createStreamMessage();
-			msg.writeBoolean(true);
-			msg.writeFloat(2.5f);
+			// StreamMessage msg = jmsContext.createStreamMessage();
+			// msg.writeBoolean(true);
+			// msg.writeFloat(2.5f);
+
+			MapMessage msg = jmsContext.createMapMessage();
+			msg.setBoolean("open", true);
+			msg.setDouble("temperature", 11.2);
+
 			// msg.setBooleanProperty("logged", true);
 			// msg.setStringProperty("userToken", "abc123..");
 			// TemporaryQueue replyQ = jmsContext.createTemporaryQueue();
@@ -51,11 +56,14 @@ public class App {
 		// Thread.sleep(2000);
 		JMSConsumer reqC = jmsContext.createConsumer(reqQ);
 		// BytesMessage msg01 = (BytesMessage) reqC.receive(100);
-		StreamMessage msg01 = (StreamMessage) reqC.receive(100);
+		// StreamMessage msg01 = (StreamMessage) reqC.receive(100);
+		MapMessage msg01 = (MapMessage) reqC.receive(100);
+		System.out.println(msg01.getBoolean("open"));
+		System.out.println(msg01.getDouble("temperature"));
 		// System.out.println(msg01.readLong());
 		// System.out.println(msg01.readUTF());
-		System.out.println(msg01.readBoolean());
-		System.out.println(msg01.readFloat());
+		// System.out.println(msg01.readBoolean());
+		// System.out.println(msg01.readFloat());
 		// // String msg = reqC.receiveBody(String.class);
 		// if (msg01 != null) {
 		// 	System.out.println(msg01.getJMSMessageID() + " : " + msg01.getBody(String.class));
